@@ -1,0 +1,17 @@
+{
+  "name": "agent-changesets",
+  "version": "1.0.0",
+  "description": "Changesets skills for AI agents",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cyberuni/agent-changesets.git"
+  },
+  "keywords": [
+    "agent-skill",
+    "changesets",
+    "claude-code",
+    "cursor",
+    "codex"
+  ],
+  "license": "MIT"
+}
