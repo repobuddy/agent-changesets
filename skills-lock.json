@@ -1,11 +1,48 @@
 {
+  "version": 1,
   "skills": {
+    "audit-skill": {
+      "source": "cyberuni/cyber-skills",
+      "sourceType": "github",
+      "skillPath": "skills/audit-skill/SKILL.md",
+      "computedHash": "77962470f87109f45cb04630fee158a12c69566cd9e1f827467cd7d71e36d494"
+    },
+    "create-skill": {
+      "source": "cyberuni/cyber-skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-skill/SKILL.md",
+      "computedHash": "58ae31ff7d764e7133dd10bd7bac1065f1223f9f4be557b957e251276215806e"
+    },
+    "find-awesome-skill": {
+      "source": "cyberuni/cyber-skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-awesome-skill/SKILL.md",
+      "computedHash": "acbd0e80274bce1969efedec72c1e4dfb84239761e5023392167dd71dbd3b5ea"
+    },
     "fix-security-pr": {
       "computedHash": "d78b2e51db20d5e19948faa0428ef3a1d51efed14706d4dc58cea2dfc6ef6530",
       "skillPath": "skills/fix-security-pr/SKILL.md",
       "source": "repobuddy/agent-security",
       "sourceType": "github"
+    },
+    "merge-dep-prs": {
+      "source": "repobuddy/repobuddy",
+      "sourceType": "github",
+      "skillPath": "skills/merge-dep-prs/SKILL.md",
+      "computedHash": "e360aff8316401b610997b3ea5c6e057341608d565a13deb3a18ca83eaef4a98"
+    },
+    "patch-skill": {
+      "source": "cyberuni/cyber-skills",
+      "sourceType": "github",
+      "skillPath": "skills/patch-skill/SKILL.md",
+      "computedHash": "508378a03abceebaf84fb2d9019d1183778d8bbebc86fd66fc1f4f4926935db0"
+    },
+    "skillify": {
+      "source": "cyberuni/cyber-skills",
+      "sourceType": "github",
+      "skillPath": "skills/skillify/SKILL.md",
+      "computedHash": "c831e0e8e7e625536962f98dc48a8e93bca0d8998f7cae2644c33673eaeaafa3"
     }
-  },
-  "version": 1
+  }
 }
+
