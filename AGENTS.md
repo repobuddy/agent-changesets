@@ -2,6 +2,23 @@
 
 This file provides guidance to AI coding assistants when working with code in this repository.
 
+## Skill Augmentations
+
+When reading any `SKILL.md` file, always check whether a `SKILL.local.md` exists in the same directory. If it does, treat its contents as additional instructions that extend the base skill. Local augmentations take precedence over the base skill where they conflict.
+
+## Commit Discipline
+
+**Auto-commit rule:** When a unit of work is complete and verified, commit it immediately — do not wait for the user to ask. Batching multiple units into one commit, or finishing all work before committing, are both violations of this rule.
+
+**Unit of work:** one coherent, independently revertable change — one domain's refactor, one feature, one bugfix, one test suite expansion for one concern, one config change. Never two unrelated concerns in the same commit. A TDD red-green-refactor cycle alone is not a commit boundary; commit when the full intended change is complete and tests pass. If the working tree has unrelated changes, leave them unstaged — commit the current unit first, then continue.
+
+- Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
+- One concern per commit; never batch unrelated changes
+- Stage only files for this unit: `git add <files>`, then verify with `git diff --cached`
+- Never use `git add .`, `git add -A`, or `git add -p` (interactive commands agents cannot run)
+- Never commit with red tests; run validation commands first
+- Use the `commit-work` skill when committing (staging, splitting, message writing)
+
 ## What This Repo Is
 
 Skills for AI agents to work with [changesets](https://github.com/changesets/changesets) — the versioning and changelog tool for JavaScript/TypeScript packages.
