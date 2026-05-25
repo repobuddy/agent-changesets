@@ -13,11 +13,11 @@ Skills for AI agents to work with [changesets](https://github.com/changesets/cha
 
 ```bash
 # Install all skills globally
-npx skills add cyberuni/agent-changesets --all -g
+npx skills add repobuddy/agent-changesets --all -g
 
 # Install a specific skill
-npx skills add cyberuni/agent-changesets --skill add-changeset -g
+npx skills add repobuddy/agent-changesets --skill add-changeset -g
 
 # Install for a specific agent
-npx skills add cyberuni/agent-changesets --skill add-changeset -a claude-code -g
+npx skills add repobuddy/agent-changesets --skill add-changeset -a claude-code -g
 ```
