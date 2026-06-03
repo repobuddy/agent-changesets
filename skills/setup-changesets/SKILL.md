@@ -11,10 +11,7 @@ description: "Use this skill when setting up changesets, release CI, or migratin
 - Adding or fixing the CI release workflow (`changesets/action` on GitHub, or direct `version`/`publish` elsewhere)
 - Migrating from semantic-release, release-it, lerna, release-please, or similar tools
 
-**Not this skill:**
-
-- Adding a changeset to the current PR → use **`add-changeset`**
-- GitHub branch protection / Dependabot only → use **`setup-github-repo`** (repobuddy main repo)
+Not this skill: adding a changeset to an existing PR → use **`add-changeset`** instead.
 
 Trigger phrases: `'add changesets'`, `'set up releases'`, `'configure versioning'`, shared `<org>/.github` release workflow.
 
@@ -293,10 +290,4 @@ ls .changeset/
 gh workflow list   # GitHub only
 ```
 
-## After setup
-
-1. Developers add changeset files via the **`add-changeset`** skill (do not duplicate its bump/summary rules here).
-2. PR merges to main → CI opens/updates **Version Packages** PR (GitHub) or version+publishes in one run (other CI).
-3. Merge Version Packages PR → publish to npm.
-
-Do not manually edit `CHANGELOG.md` or versions on the Version Packages PR.
+Tell the user to add future changesets via the **`add-changeset`** skill. Never manually edit `CHANGELOG.md` or version bumps — the Version Packages PR is fully generated.
