@@ -1,6 +1,6 @@
 ---
 name: setup-changesets
-description: "Use this skill when setting up changesets, release CI, or migrating from another release tool."
+description: "Use this skill when setting up changesets, release CI, upgrading the Changesets CLI across a major, or migrating from another release tool. Also when a release job fails with a Changesets CLI/action version mismatch."
 ---
 
 # Setup Changesets
@@ -10,10 +10,11 @@ description: "Use this skill when setting up changesets, release CI, or migratin
 - First-time changesets setup in a repo (single package or monorepo)
 - Adding or fixing the CI release workflow (`changesets/action` on GitHub, or direct `version`/`publish` elsewhere)
 - Migrating from semantic-release, release-it, lerna, release-please, or similar tools
+- Upgrading the CLI across a major, or fixing a `changesets/action` ↔ CLI version mismatch
 
 Not this skill: adding a changeset to an existing PR → use **`add-changeset`** instead.
 
-Trigger phrases: `'add changesets'`, `'set up releases'`, `'configure versioning'`, shared `<org>/.github` release workflow.
+Trigger phrases: `'add changesets'`, `'set up releases'`, `'configure versioning'`, `'upgrade changesets'`, shared `<org>/.github` release workflow.
 
 ## Instructions
 
@@ -26,6 +27,8 @@ Trigger phrases: `'add changesets'`, `'set up releases'`, `'configure versioning
 | Package manager | `pnpm-lock.yaml`, `bun.lock`/`bun.lockb`, `yarn.lock`, `package-lock.yaml` |
 | Monorepo | `pnpm-workspace.yaml`, `workspaces` in root `package.json`, or `bun.workspace.ts` |
 | Already initialized | `.changeset/` directory exists |
+| CLI major | `@changesets/cli` range in root `package.json` |
+| Action major | `changesets/action@` ref in the release workflow — follow a `uses:` to the shared workflow first |
 | CI platform | `.github/workflows/` → GitHub Actions; `.gitlab-ci.yml` → GitLab; `.circleci/config.yml` → CircleCI; `bitbucket-pipelines.yml` → Bitbucket; `azure-pipelines.yml` → Azure; `Jenkinsfile` → Jenkins; `.travis.yml` → Travis; `.drone.yml` → Drone; none → ask |
 
 **Competing release tools** — check `package.json` deps and config files:
@@ -48,6 +51,7 @@ Trigger phrases: `'add changesets'`, `'set up releases'`, `'configure versioning
 | Condition | Action |
 |---|---|
 | `.changeset/` already exists | Skip Step 2 init; audit config/scripts/CI only |
+| CLI major ≠ action major, or CLI still v2 | Read `references/migration/cli-v3-upgrade.md` and upgrade — see the pairing table in Step 5. Do not re-run init |
 | Competing tool detected | Ask: migrate to changesets? **No** → stop. **Yes** → read only the matching `references/migration/<tool>.md` file(s), apply removal, then continue |
 | Non-GitHub CI and user expects a Version Packages PR | Explain that pattern is GitHub-only; proceed with `references/ci/_common.md` or stop |
 
@@ -65,13 +69,13 @@ Skip if `.changeset/` already exists.
 
 ```bash
 # pnpm
-pnpm dlx @changesets/cli init
+pnpm dlx @changesets/cli@3 init
 
 # bun
-bunx @changesets/cli init
+bunx @changesets/cli@3 init
 
 # npm / yarn
-npx @changesets/cli init
+npx @changesets/cli@3 init
 ```
 
 Creates `.changeset/config.json` and `.changeset/README.md`.
@@ -84,7 +88,7 @@ Replace the generated config. Set `baseBranch` to the repo's default branch if n
 
 ```json
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "access": "public",
@@ -96,7 +100,7 @@ Replace the generated config. Set `baseBranch` to the repo's default branch if n
 
 ```json
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "access": "public",
@@ -132,6 +136,24 @@ If a build must run before publish: `"release": "<pm> build && changeset publish
 
 ### Step 5 — CI release workflow
 
+#### The CLI and the action must match majors
+
+`changesets/action` refuses a mismatched CLI:
+
+```
+Error: This version of the Changesets action is designed to work with Changesets CLI v3.
+Changesets CLI v2 is not supported; use Changesets action v1 instead, which is compatible with CLI v2.
+```
+
+| `@changesets/cli` | `changesets/action` | Input names |
+|---|---|---|
+| v2 | `@v1` | `version:`, `publish:`, `commit:`, `GITHUB_TOKEN` env var |
+| v3 | `@v2` | `version-script:`, `publish-script:`, `commit-message:`, `github-token:` input |
+
+The renamed inputs are **silently ignored** under the wrong major, so a half-done bump leaves the action running with no publish script. Change both sides in one commit.
+
+New repos get **CLI v3 + action v2**. Staying on v2 is not a safe hold: npm 12 changed `npm info --json` to emit an array, and CLI 2.x reads `.versions` off the parsed object — it comes back `undefined`, every version looks unpublished, and the release republishes into npm's E403.
+
 #### GitHub Actions — Option A (inline)
 
 Create `.github/workflows/release.yml`:
@@ -163,12 +185,12 @@ jobs:
       - run: <build-command>        # remove if no build step
 
       - name: Create Release PR or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: <pm> run version
-          publish: <pm> run release
+          version-script: <pm> run version
+          publish-script: <pm> run release
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
@@ -202,7 +224,7 @@ npm/yarn:
     cache: npm   # or: yarn
 ```
 
-**Token note:** `GITHUB_TOKEN` is enough for most repos. If branch protection requires CI on the **Version Packages** PR, use a PAT with `repo` scope as `RELEASE_TOKEN` and pass `GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}`.
+**Token note:** `GITHUB_TOKEN` is enough for most repos. If branch protection requires CI on the **Version Packages** PR, use a PAT with `repo` scope as `RELEASE_TOKEN` and pass it as the action's `github-token:` input.
 
 #### GitHub Actions — Option B (shared workflow)
 
@@ -240,12 +262,12 @@ jobs:
       # Add package manager setup, install, build
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: <pm> run version
-          publish: <pm> run release
+          version-script: <pm> run version
+          publish-script: <pm> run release
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
@@ -262,6 +284,8 @@ jobs:
     uses: <user-or-org>/.github/.github/workflows/release-changeset.yml@main
     secrets: inherit
 ```
+
+**A shared workflow makes the action version a fleet-wide decision.** Bumping `changesets/action` here breaks the release job in every consumer still on the old CLI, and the failure surfaces in *their* repos, not this one — each on its next push to `main`, not at merge time. Bump the consumers' CLI in the same pass.
 
 #### Other CI platforms
 
@@ -284,10 +308,25 @@ Read `references/ci/_common.md` for the non-GitHub pattern, then the platform fi
 
 ### Step 7 — Verify
 
+Assert the pairing first — the one check that catches a setup which looks complete and fails on its first release:
+
+```bash
+jq -r '.devDependencies["@changesets/cli"] // .dependencies["@changesets/cli"]' package.json
+grep -rn 'changesets/action@' .github/workflows/   # follow a `uses:` to the shared workflow first
+```
+
+`cli ^3` needs `action@v2` with the `-script` input names; `cli ^2` needs `action@v1`. A mismatch is the failure, whatever else is green.
+
 ```bash
 npx changeset add --empty
 ls .changeset/
 gh workflow list   # GitHub only
+```
+
+On an existing repo with pending changesets, confirm they still parse — this is what proves an upgrade did not strand a release:
+
+```bash
+<pm> exec changeset status
 ```
 
 Tell the user to add future changesets via the **`add-changeset`** skill. Never manually edit `CHANGELOG.md` or version bumps — the Version Packages PR is fully generated.
